@@ -1,0 +1,45 @@
+{
+    "name": "cakedc/cakephp-enqueue",
+    "description": "CakephpEnqueue plugin for CakePHP",
+    "type": "cakephp-plugin",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.2",
+        "cakephp/queue": "*",
+        "cakephp/cakephp": "^4.3"
+    },
+    "require-dev": {
+        "cakephp/cakephp-codesniffer": "^4.0",
+        "enqueue/enqueue": "^0.10.15",
+        "enqueue/fs": "^0.10",
+        "enqueue/simple-client": "^0.10",
+        "psr/log": "^1.1",
+        "phpunit/phpunit": "^8.5 || ^9.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cake\\Enqueue\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cake\\Enqueue\\Test\\": "tests/",
+            "Cake\\Test\\": "vendor/cakephp/cakephp/tests/",
+            "TestApp\\": "tests/test_app/src/"
+        }
+    },
+    "scripts": {
+        "check": [
+            "@cs-check"
+        ],
+        "cs-check": "phpcs -p --standard=vendor/cakephp/cakephp-codesniffer/CakePHP src/ tests/",
+        "cs-fix": "phpcbf --standard=vendor/cakephp/cakephp-codesniffer/CakePHP src/ tests/",
+        "test": "phpunit --stderr"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}
