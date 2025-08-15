@@ -16,11 +16,11 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Job;
 
+use Cake\Enqueue\CakeConnectionFactory;
+use Cake\Enqueue\CakeMessage;
 use Cake\Queue\Job\Message;
 use Cake\TestSuite\TestCase;
 use Closure;
-use Cake\Enqueue\CakeConnectionFactory;
-use Cake\Enqueue\CakeMessage;
 use Error;
 use RuntimeException;
 

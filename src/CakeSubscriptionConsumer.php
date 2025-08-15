@@ -17,8 +17,11 @@ declare(strict_types=1);
 namespace Cake\Enqueue;
 
 use Cake\Database\Connection;
+use Cake\Datasource\ConnectionInterface;
 use Interop\Queue\Consumer;
 use Interop\Queue\SubscriptionConsumer;
+use InvalidArgumentException;
+use LogicException;
 
 class CakeSubscriptionConsumer implements SubscriptionConsumer
 {
@@ -27,33 +30,33 @@ class CakeSubscriptionConsumer implements SubscriptionConsumer
     /**
      * @var \Cake\Enqueue\CakeContext
      */
-    private $context;
+    private CakeContext $context;
 
     /**
      * an item contains an array: [CakeConsumer $consumer, callable $callback];.
      *
      * @var array
      */
-    private $subscribers;
+    private array $subscribers;
 
     /**
      * @var \Cake\Datasource\ConnectionInterface
      */
-    private $connection;
+    private ConnectionInterface $connection;
 
     /**
      * Default 20 minutes in milliseconds.
      *
      * @var int
      */
-    private $redeliveryDelay;
+    private int $redeliveryDelay;
 
     /**
      * Time to wait between subscription requests in milliseconds.
      *
      * @var int
      */
-    private $pollingInterval = 200;
+    private int $pollingInterval = 200;
 
     /**
      * @param \Cake\Enqueue\CakeContext $context Context instance.
@@ -114,7 +117,7 @@ class CakeSubscriptionConsumer implements SubscriptionConsumer
     public function consume(int $timeout = 0): void
     {
         if (empty($this->subscribers)) {
-            throw new \LogicException('No subscribers');
+            throw new LogicException('No subscribers');
         }
 
         $queueNames = [];
@@ -165,7 +168,7 @@ class CakeSubscriptionConsumer implements SubscriptionConsumer
     {
         if ($consumer instanceof CakeConsumer == false) {
             $msg = sprintf('The consumer must be instance of "%s" got "%s"', CakeConsumer::class, get_class($consumer));
-            throw new \InvalidArgumentException($msg);
+            throw new InvalidArgumentException($msg);
         }
 
         $queueName = $consumer->getQueue()->getQueueName();
@@ -175,7 +178,7 @@ class CakeSubscriptionConsumer implements SubscriptionConsumer
             }
 
             $msg = sprintf('There is a consumer subscribed to queue: "%s"', $queueName);
-            throw new \InvalidArgumentException($msg);
+            throw new InvalidArgumentException($msg);
         }
 
         $this->subscribers[$queueName] = [$consumer, $callback];
@@ -189,7 +192,7 @@ class CakeSubscriptionConsumer implements SubscriptionConsumer
     {
         if ($consumer instanceof CakeConsumer == false) {
             $msg = sprintf('The consumer must be instance of "%s" got "%s"', CakeConsumer::class, get_class($consumer));
-            throw new \InvalidArgumentException($msg);
+            throw new InvalidArgumentException($msg);
         }
 
         $queueName = $consumer->getQueue()->getQueueName();

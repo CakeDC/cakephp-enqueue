@@ -28,12 +28,12 @@ class CakeConnectionFactory implements ConnectionFactory
     /**
      * @var array
      */
-    private $config;
+    private array $config;
 
     /**
-     * @var \Cake\Database\Connection
+     * @var \Cake\Database\Connection|null
      */
-    private $connection;
+    private ?Connection $connection = null;
 
     /**
      * The config could be an array, string DSN or null. In case of null it will attempt to connect to mysql localhost with default credentials.
@@ -51,7 +51,7 @@ class CakeConnectionFactory implements ConnectionFactory
      *
      * @param array|string|null $config Connection settings.
      */
-    public function __construct($config = 'cakephp:default')
+    public function __construct(array|string|null $config = 'cakephp:default')
     {
         $parsedConfig = $this->parseDsn($config);
 
@@ -62,7 +62,7 @@ class CakeConnectionFactory implements ConnectionFactory
             'polling_interval' => 1000,
             'lazy' => true,
             ],
-            $parsedConfig
+            $parsedConfig,
         );
     }
 

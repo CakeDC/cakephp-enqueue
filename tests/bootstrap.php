@@ -16,7 +16,9 @@ declare(strict_types=1);
  */
 
 use Cake\Core\Configure;
+use Cake\Datasource\ConnectionManager;
 use Cake\Routing\Router;
+use TestApp\Application;
 
 $findRoot = function ($root) {
     do {
@@ -32,7 +34,7 @@ $root = $findRoot(__FILE__);
 unset($findRoot);
 chdir($root);
 
-require_once 'vendor/cakephp/cakephp/src/basics.php';
+require_once 'vendor/cakephp/cakephp/src/functions.php';
 require_once 'vendor/autoload.php';
 
 define('CORE_PATH', $root . DS . 'vendor' . DS . 'cakephp' . DS . 'cakephp' . DS);
@@ -44,6 +46,10 @@ define('CACHE', sys_get_temp_dir() . DS . 'cache' . DS);
 if (!defined('CONFIG')) {
     define('CONFIG', ROOT . DS . 'config' . DS);
 }
+
+// Initialize the test application to load plugins
+$app = new Application(CONFIG);
+$app->bootstrap();
 
 Configure::write('debug', true);
 Configure::write('App', [
@@ -73,7 +79,7 @@ if (!getenv('db_dsn')) {
     putenv('db_dsn=sqlite:///:memory:');
 }
 
-Cake\Datasource\ConnectionManager::setConfig('test', [
+ConnectionManager::setConfig('test', [
     'url' => getenv('db_dsn'),
     'timezone' => 'UTC',
 ]);

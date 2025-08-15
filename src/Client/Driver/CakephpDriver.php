@@ -17,7 +17,9 @@ declare(strict_types=1);
 namespace Cake\Enqueue\Client\Driver;
 
 use Cake\Enqueue\CakeContext;
+use Enqueue\Client\Config;
 use Enqueue\Client\Driver\GenericDriver;
+use Enqueue\Client\RouteCollection;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -28,11 +30,12 @@ class CakephpDriver extends GenericDriver
 {
     /**
      * @param \Cake\Enqueue\CakeContext $context Driver context.
-     * @param array $args Arguments.
+     * @param \Enqueue\Client\Config $config Driver configuration.
+     * @param \Enqueue\Client\RouteCollection $routeCollection Route collection.
      */
-    public function __construct(CakeContext $context, ...$args)
+    public function __construct(CakeContext $context, Config $config, RouteCollection $routeCollection)
     {
-        parent::__construct($context, ...$args);
+        parent::__construct($context, $config, $routeCollection);
     }
 
     /**
@@ -42,7 +45,7 @@ class CakephpDriver extends GenericDriver
     public function setupBroker(?LoggerInterface $logger = null): void
     {
         $logger = $logger ?: new NullLogger();
-        $log = function ($text, ...$args) use ($logger) {
+        $log = function ($text, ...$args) use ($logger): void {
             $logger->debug(sprintf('[CakephpDriver] ' . $text, ...$args));
         };
 

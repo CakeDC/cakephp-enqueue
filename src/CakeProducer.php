@@ -16,12 +16,14 @@ declare(strict_types=1);
  */
 namespace Cake\Enqueue;
 
+use Exception as BaseException;
 use Interop\Queue\Destination;
 use Interop\Queue\Exception\Exception;
 use Interop\Queue\Exception\InvalidDestinationException;
 use Interop\Queue\Exception\InvalidMessageException;
 use Interop\Queue\Message;
 use Interop\Queue\Producer;
+use LogicException;
 use Ramsey\Uuid\Uuid;
 
 class CakeProducer implements Producer
@@ -29,22 +31,22 @@ class CakeProducer implements Producer
     /**
      * @var int|null
      */
-    private $priority;
+    private ?int $priority = null;
 
     /**
-     * @var int|float|null
+     * @var float|int|null
      */
-    private $deliveryDelay;
+    private int|float|null $deliveryDelay = null;
 
     /**
-     * @var int|float|null
+     * @var float|int|null
      */
-    private $timeToLive;
+    private int|float|null $timeToLive = null;
 
     /**
      * @var \Cake\Enqueue\CakeContext
      */
-    private $context;
+    private CakeContext $context;
 
     /**
      * @param \Cake\Enqueue\CakeContext $context Context instance.
@@ -96,11 +98,11 @@ class CakeProducer implements Producer
         if ($delay) {
             if (!is_int($delay)) {
                 $result = is_object($delay) ? get_class($delay) : gettype($delay);
-                throw new \LogicException(sprintf('Delay must be integer but got: "%s"', $result));
+                throw new LogicException(sprintf('Delay must be integer but got: "%s"', $result));
             }
 
             if ($delay <= 0) {
-                throw new \LogicException(sprintf('Delay must be positive integer but got: "%s"', $delay));
+                throw new LogicException(sprintf('Delay must be positive integer but got: "%s"', $delay));
             }
 
             $record['delayed_until'] = time() + (int)($delay / 1000);
@@ -110,11 +112,11 @@ class CakeProducer implements Producer
         if ($timeToLive) {
             if (!is_int($timeToLive)) {
                 $value = is_object($timeToLive) ? get_class($timeToLive) : gettype($timeToLive);
-                throw new \LogicException(sprintf('TimeToLive must be integer but got: "%s"', $value));
+                throw new LogicException(sprintf('TimeToLive must be integer but got: "%s"', $value));
             }
 
             if ($timeToLive <= 0) {
-                throw new \LogicException(sprintf('TimeToLive must be positive integer but got: "%s"', $timeToLive));
+                throw new LogicException(sprintf('TimeToLive must be positive integer but got: "%s"', $timeToLive));
             }
 
             $record['time_to_live'] = time() + (int)($timeToLive / 1000);
@@ -126,7 +128,7 @@ class CakeProducer implements Producer
             if ($rowsAffected->rowCount() !== 1) {
                 throw new Exception('The message was not enqueued. Cake did not confirm that the record is inserted.');
             }
-        } catch (\Exception $e) {
+        } catch (BaseException $e) {
             throw new Exception('The transport fails to send the message due to some internal error.', 0, $e);
         }
     }

@@ -17,13 +17,25 @@ declare(strict_types=1);
 namespace Cake\Enqueue;
 
 use Cake\Database\Connection;
+use Exception;
+use LogicException;
 use Ramsey\Uuid\Uuid;
 
 trait CakeConsumerHelperTrait
 {
-    private $redeliverMessagesLastExecutedAt;
+    /**
+     * Timestamp when redelivery of failed messages was last executed
+     *
+     * @var float|null
+     */
+    private ?float $redeliverMessagesLastExecutedAt = null;
 
-    private $removeExpiredMessagesLastExecutedAt;
+    /**
+     * Timestamp when cleanup of expired messages was last executed
+     *
+     * @var float|null
+     */
+    private ?float $removeExpiredMessagesLastExecutedAt = null;
 
     /**
      * @return \Cake\Enqueue\CakeContext
@@ -43,7 +55,7 @@ trait CakeConsumerHelperTrait
     protected function fetchMessage(array $queues, int $redeliveryDelay): ?CakeMessage
     {
         if (empty($queues)) {
-            throw new \LogicException('Queues must not be empty.');
+            throw new LogicException('Queues must not be empty.');
         }
 
         $now = time();
@@ -61,7 +73,7 @@ trait CakeConsumerHelperTrait
                 ],
                 'delivery_id IS' => null,
             ])
-            ->order(['priority', 'published_at']);
+            ->orderBy(['priority', 'published_at']);
 
         while (microtime(true) < $endAt) {
             try {
@@ -78,7 +90,7 @@ trait CakeConsumerHelperTrait
                     [
                         'id' => $result['id'],
                         'delivery_id IS' => null,
-                    ]
+                    ],
                 );
 
                 if ($updateResult) {
@@ -86,7 +98,6 @@ trait CakeConsumerHelperTrait
                         ->where(['delivery_id' => $deliveryId])
                         ->first();
 
-                    // the message has been removed by a 3rd party, such as truncate operation.
                     if ($deliveredMessage === null) {
                         continue;
                     }
@@ -99,7 +110,7 @@ trait CakeConsumerHelperTrait
                         return $this->getContext()->convertMessage($deliveredMessage->toArray());
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // maybe next time we'll get more luck
             }
         }
@@ -118,7 +129,7 @@ trait CakeConsumerHelperTrait
             return;
         }
         try {
-            $updateResult = $this->getContext()->getTable()->updateAll(
+            $this->getContext()->getTable()->updateAll(
                 [
                     'delivery_id' => null,
                     'redeliver' => true,
@@ -126,11 +137,11 @@ trait CakeConsumerHelperTrait
                 [
                     'redeliver_after <' => time(),
                     'delivery_id IS NOT' => null,
-                ]
+                ],
             );
 
             $this->redeliverMessagesLastExecutedAt = microtime(true);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // maybe next time we'll get more luck
         }
     }
@@ -153,7 +164,7 @@ trait CakeConsumerHelperTrait
                 'redelivered' => false,
                 'delivery_id IS' => null,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // maybe next time we'll get more luck
         }
 
@@ -168,11 +179,11 @@ trait CakeConsumerHelperTrait
     {
         if (empty($deliveryId)) {
             $msg = sprintf('Expected record was removed but it is not. Delivery id: "%s"', $deliveryId);
-            throw new \LogicException($msg);
+            throw new LogicException($msg);
         }
 
         $this->getContext()->getTable()->deleteAll(
-            ['delivery_id' => $deliveryId]
+            ['delivery_id' => $deliveryId],
         );
     }
 }
