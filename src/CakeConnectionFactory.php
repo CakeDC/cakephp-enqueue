@@ -97,7 +97,7 @@ class CakeConnectionFactory implements ConnectionFactory
     {
         if ($this->connection == false) {
             $this->connection = ConnectionManager::get($this->config['connection']);
-            $this->connection->connect();
+            $this->connection->getDriver()->connect();
         }
 
         return $this->connection;

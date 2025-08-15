@@ -40,8 +40,8 @@ class ProcessorTest extends TestCase
     public function dataProviderTestProcess(): array
     {
         return [
-            'ack' => ['processReturnAck', InteropProcessor::ACK, 'Message processed sucessfully', 'Processor.message.success'],
-            'null' => ['processReturnNull', InteropProcessor::ACK, 'Message processed sucessfully', 'Processor.message.success'],
+            'ack' => ['processReturnAck', InteropProcessor::ACK, 'Message processed successfully', 'Processor.message.success'],
+            'null' => ['processReturnNull', InteropProcessor::ACK, 'Message processed successfully', 'Processor.message.success'],
             'reject' => ['processReturnReject', InteropProcessor::REJECT, 'Message processed with rejection', 'Processor.message.reject'],
             'requeue' => ['processReturnRequeue', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
             'string' => ['processReturnString', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
@@ -154,7 +154,8 @@ class ProcessorTest extends TestCase
         $processor->getEventManager()->setEventList($events);
 
         $result = $processor->process($queueMessage, $context);
-        $this->assertSame(InteropProcessor::REQUEUE, $result);
+		$status = $result->getStatus();
+        $this->assertSame(InteropProcessor::REQUEUE, $status);
     }
 
     /**

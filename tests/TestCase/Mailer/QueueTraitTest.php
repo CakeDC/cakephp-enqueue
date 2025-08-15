@@ -64,6 +64,6 @@ class QueueTraitTest extends TestCase
         $entites = $Enqueue->find()->all()->toArray();
         $this->assertCount(1, $entites);
         $this->assertEquals('enqueue.app.default', $entites[0]->queue);
-        $this->assertEquals('{"class":["Cake\\\\Queue\\\\Job\\\\MailerJob","execute"],"args":[{"mailerConfig":null,"mailerName":"TestApp\\\\WelcomeMailer","action":"welcome","args":[],"headers":[]}],"data":{"mailerConfig":null,"mailerName":"TestApp\\\\WelcomeMailer","action":"welcome","args":[],"headers":[]}}', $entites[0]->body);
+        $this->assertEquals('{"class":["Cake\\\\Queue\\\\Job\\\\MailerJob","execute"],"args":[{"mailerConfig":null,"mailerName":"TestApp\\\\WelcomeMailer","action":"welcome","args":[],"headers":[]}],"data":{"mailerConfig":null,"mailerName":"TestApp\\\\WelcomeMailer","action":"welcome","args":[],"headers":[]},"requeueOptions":{"config":"default","priority":null,"queue":"default"}}', $entites[0]->body);
     }
 }
