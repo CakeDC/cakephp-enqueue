@@ -66,9 +66,9 @@ jobs:
           if [[ ${{ matrix.db-type }} == 'mysql' ]]; then export DB_URL='mysql://root:root@127.0.0.1/cakephp'; fi
           if [[ ${{ matrix.db-type }} == 'pgsql' ]]; then export DB_URL='postgres://postgres:postgres@127.0.0.1/postgres'; fi
           if [[ ${{ matrix.php-version }} == '8.2' ]]; then
-            export CODECOVERAGE=1 && vendor/bin/phpunit --coverage-clover=coverage.xml
+            export CODECOVERAGE=1 && vendor/bin/phpunit --coverage-clover=coverage.xml --configuration phpunit.xml.dist
           else
-            vendor/bin/phpunit
+            vendor/bin/phpunit --configuration phpunit.xml.dist
           fi
 
       - name: Submit code coverage

@@ -8,7 +8,6 @@
     displayDetailsOnTestsThatTriggerErrors="true"
     displayDetailsOnTestsThatTriggerNotices="true"
     displayDetailsOnTestsThatTriggerWarnings="true"
-    displayDetailsOnPhpunitDeprecations="true"
     beStrictAboutOutputDuringTests="true"
     bootstrap="tests/bootstrap.php"
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd">
@@ -22,4 +21,14 @@
       <directory>tests/TestCase/</directory>
     </testsuite>
   </testsuites>
+
+  <coverage>
+    <include>
+      <directory suffix=".php">src/</directory>
+    </include>
+    <exclude>
+      <directory suffix=".php">tests/</directory>
+      <directory suffix=".php">vendor/</directory>
+    </exclude>
+  </coverage>
 </phpunit>
