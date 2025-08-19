@@ -28,12 +28,12 @@ class CakeConnectionFactory implements ConnectionFactory
     /**
      * @var array
      */
-    private $config;
+    private array $config;
 
     /**
-     * @var \Cake\Database\Connection
+     * @var \Cake\Database\Connection|null
      */
-    private $connection;
+    private ?Connection $connection = null;
 
     /**
      * The config could be an array, string DSN or null. In case of null it will attempt to connect to mysql localhost with default credentials.
@@ -45,24 +45,33 @@ class CakeConnectionFactory implements ConnectionFactory
      *   'lazy' => true,                - Use lazy database connection (boolean)
      * ]
      *
-     * or
-     *
-     * mysql://user:pass@localhost:3606/db?charset=UTF-8
+     * DSN Format Examples:
+     * - cakephp://default                    - Use 'default' connection with default settings
+     * - cakephp://test                       - Use 'test' connection with default settings
+     * - cakephp://default?table_name=queue&polling_interval=500&lazy=false
+     * - cakephp://test?table_name=test_queue&polling_interval=2000
+     * - cakephp://production?table_name=prod_queue&polling_interval=1000&lazy=true
      *
      * @param array|string|null $config Connection settings.
      */
-    public function __construct($config = 'cakephp:default')
+    public function __construct(array|string|null $config = 'cakephp://default')
     {
-        $parsedConfig = $this->parseDsn($config);
+        if (is_array($config)) {
+            $parsedConfig = $config;
+        } elseif (is_string($config)) {
+            $parsedConfig = $this->parseDsn($config);
+        } else {
+            $parsedConfig = ['connection' => 'default'];
+        }
 
         $this->config = array_replace_recursive(
             [
-            'connection' => $config ?? 'default',
+            'connection' => 'default',
             'table_name' => 'enqueue',
             'polling_interval' => 1000,
             'lazy' => true,
             ],
-            $parsedConfig
+            $parsedConfig,
         );
     }
 
@@ -86,7 +95,7 @@ class CakeConnectionFactory implements ConnectionFactory
     public function close(): void
     {
         if ($this->connection) {
-            $this->connection->close();
+            $this->connection->getDriver()->disconnect();
         }
     }
 
@@ -109,19 +118,42 @@ class CakeConnectionFactory implements ConnectionFactory
      * @return array
      * @throws \Interop\Queue\Exception\Exception
      */
-    private function parseDsn(string $dsn, ?array $config = null): array
+    public function parseDsn(string $dsn, ?array $config = null): array
     {
         $parsedDsn = Dsn::parseFirst($dsn);
+
         if ($parsedDsn->getScheme() !== 'cakephp') {
             throw new Exception('Wrong dsn schema passed. Accepted only cakephp schema.');
         }
-        $dsn = str_replace('cakephp:', '', $dsn);
-        $parsedDsn = Dsn::parseFirst(str_replace('cakephp', '', $dsn));
+
+        $connectionName = $parsedDsn->getHost();
+
+        if (empty($connectionName)) {
+            $connectionName = 'default';
+        }
+
         $query = $parsedDsn->getQuery();
 
+        $configOverrides = [];
+        foreach ($query as $key => $value) {
+            switch ($key) {
+                case 'polling_interval':
+                    $configOverrides[$key] = (int)$value;
+                    break;
+                case 'lazy':
+                    $configOverrides[$key] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                    break;
+                case 'table_name':
+                case 'connection':
+                default:
+                    $configOverrides[$key] = $value;
+                    break;
+            }
+        }
+
         return array_merge([
+            'connection' => $connectionName,
             'lazy' => true,
-            'connection' => $parsedDsn->getPath(),
-        ], $query);
+        ], $configOverrides);
     }
 }

@@ -18,7 +18,9 @@ namespace Cake\Enqueue;
 
 use Cake\Database\Connection;
 use Cake\Datasource\ConnectionInterface;
+use Cake\ORM\Table as OrmTable;
 use Cake\ORM\TableRegistry;
+use Exception;
 use Interop\Queue\Consumer;
 use Interop\Queue\Context;
 use Interop\Queue\Destination;
@@ -29,13 +31,20 @@ use Interop\Queue\Producer;
 use Interop\Queue\Queue;
 use Interop\Queue\SubscriptionConsumer;
 use Interop\Queue\Topic;
+use InvalidArgumentException;
+use LogicException;
+use Migrations\Db\Adapter\MysqlAdapter;
+use Migrations\Db\Adapter\PostgresAdapter;
+use Migrations\Db\Adapter\SqliteAdapter;
+use Migrations\Db\Table;
+use RuntimeException;
 
 class CakeContext implements Context
 {
     /**
-     * @var \Cake\Database\Connection
+     * @var \Cake\Database\Connection|null
      */
-    private $connection;
+    private ?Connection $connection = null;
 
     /**
      * @var callable
@@ -45,7 +54,7 @@ class CakeContext implements Context
     /**
      * @var array
      */
-    private $config;
+    private array $config;
 
     /**
      * Callable must return instance of Cake\Database\Connection once called.
@@ -53,7 +62,7 @@ class CakeContext implements Context
      * @param \Cake\Database\Connection|callable $connection Connection instance.
      * @param array $config Config settings.
      */
-    public function __construct($connection, array $config = [])
+    public function __construct(Connection|callable $connection, array $config = [])
     {
         $this->config = array_replace([
             'table_name' => 'enqueue',
@@ -69,9 +78,9 @@ class CakeContext implements Context
             $msg = sprintf(
                 'The connection argument must be either %s or callable that returns %s.',
                 Connection::class,
-                Connection::class
+                Connection::class,
             );
-            throw new \InvalidArgumentException($msg);
+            throw new InvalidArgumentException($msg);
         }
     }
 
@@ -181,7 +190,7 @@ class CakeContext implements Context
         $message = $this->createMessage(
             $arrayMessage['body'],
             $arrayMessage['properties'] ? JSON::decode($arrayMessage['properties']) : [],
-            $arrayMessage['headers'] ? JSON::decode($arrayMessage['headers']) : []
+            $arrayMessage['headers'] ? JSON::decode($arrayMessage['headers']) : [],
         );
 
         if (isset($arrayMessage['id'])) {
@@ -217,7 +226,7 @@ class CakeContext implements Context
     {
         $this->getCakeConnection()->delete(
             $this->getTableName(),
-            ['queue' => $queue->getQueueName()]
+            ['queue' => $queue->getQueueName()],
         );
     }
 
@@ -242,12 +251,12 @@ class CakeContext implements Context
      */
     public function getCakeConnection(): Connection
     {
-        if ($this->connection == false) {
+        if ($this->connection == null) {
             $connection = call_user_func($this->connectionFactory);
             if ($connection instanceof ConnectionInterface == false) {
                 $template = 'The factory must return instance of Cake\Datasource\ConnectionInterface. It returns %s';
                 $msg = sprintf($template, is_object($connection) ? get_class($connection) : gettype($connection));
-                throw new \LogicException($msg);
+                throw new LogicException($msg);
             }
 
             $this->connection = $connection;
@@ -259,10 +268,11 @@ class CakeContext implements Context
     /**
      * @return \Cake\ORM\Table
      */
-    public function getTable()
+    public function getTable(): OrmTable
     {
-        $connection = $this->getCakeConnection();
-        $table = TableRegistry::getTableLocator()->get('Cake/Enqueue.Enqueue');
+        $table = TableRegistry::getTableLocator()->get('Cake/Enqueue.Enqueue', [
+            'connection' => $this->getCakeConnection(),
+        ]);
         $table->setTable($this->getTableName());
 
         return $table;
@@ -286,63 +296,77 @@ class CakeContext implements Context
      */
     public function createDataBaseTable(): void
     {
-        $connection = $this->getCakeConnection();
-        $schema = $connection->getDriver()->newTableSchema($this->getTableName());
-
         if ($this->tableExists($this->getTableName())) {
             return;
         }
 
-        $schema = $connection->getDriver()->newTableSchema($this->getTableName());
-
-        $schema->addColumn('id', ['type' => 'uuid']);
-        $schema->addColumn('published_at', ['type' => 'integer', 'length' => 11]);
-        $schema->addColumn('body', ['type' => 'text', 'null' => true]);
-        $schema->addColumn('headers', ['type' => 'text', 'null' => true]);
-        $schema->addColumn('properties', ['type' => 'text', 'null' => true]);
-        $schema->addColumn('redelivered', ['type' => 'boolean', 'null' => true]);
-        $schema->addColumn('queue', ['type' => 'string']);
-        $schema->addColumn('priority', ['type' => 'integer', 'length' => 5, 'null' => true]);
-        $schema->addColumn('delayed_until', ['type' => 'integer', 'null' => true]);
-        $schema->addColumn('time_to_live', ['type' => 'integer', 'null' => true]);
-        $schema->addColumn('delivery_id', ['type' => 'uuid', 'null' => true]);
-        $schema->addColumn('redeliver_after', ['type' => 'integer', 'null' => true]);
-
-        $schema->addConstraint('primary', [
-            'type' => 'primary',
-            'columns' => ['id'],
-        ]);
-        $schema->addIndex('priority_idx', [
-            'type' => 'index',
-            'columns' => ['priority', 'published_at', 'queue', 'delivery_id', 'delayed_until', 'id'],
-        ]);
-
-        $schema->addIndex('redeliver_idx', [
-            'type' => 'index',
-            'columns' => ['redeliver_after', 'delivery_id'],
-        ]);
-        $schema->addIndex('ttl_idx', [
-            'type' => 'index',
-            'columns' => ['time_to_live', 'delivery_id'],
-        ]);
-        $schema->addIndex('delivery_id_idx', [
-            'type' => 'index',
-            'columns' => ['delivery_id'],
-        ]);
-
         try {
-            /** @psalm-suppress ArgumentTypeCoercion */
-            $queries = $schema->createSql($connection);
-            foreach ($queries as $query) {
-                $stmt = $connection->prepare($query);
-                $stmt->execute();
-                $stmt->closeCursor();
+            $connection = $this->getCakeConnection();
+
+            $config = $connection->config();
+            $driverClass = get_class($connection->getDriver());
+            if (strpos($driverClass, 'Sqlite') !== false) {
+                $adapterConfig = array_merge($config, [
+                    'adapter' => 'sqlite',
+                    'connection' => $connection,
+                    'driver' => 'sqlite',
+                ]);
+                $adapter = new SqliteAdapter($adapterConfig);
+            } elseif (strpos($driverClass, 'Mysql') !== false) {
+                $adapterConfig = array_merge($config, [
+                    'adapter' => 'mysql',
+                    'connection' => $connection,
+                    'driver' => 'mysql',
+                ]);
+                $adapter = new MysqlAdapter($adapterConfig);
+            } elseif (strpos($driverClass, 'Postgres') !== false) {
+                $adapterConfig = array_merge($config, [
+                    'adapter' => 'pgsql',
+                    'connection' => $connection,
+                    'driver' => 'pgsql',
+                ]);
+                $adapter = new PostgresAdapter($adapterConfig);
+            } else {
+                throw new RuntimeException('Unsupported database driver: ' . $driverClass);
             }
-        } catch (\Exception $e) {
+
+            $table = new Table($this->getTableName(), ['id' => false], $adapter);
+
+            $table->addColumn('id', 'uuid');
+            $table->addColumn('published_at', 'biginteger');
+            $table->addColumn('body', 'text', ['null' => true]);
+            $table->addColumn('headers', 'text', ['null' => true]);
+            $table->addColumn('properties', 'text', ['null' => true]);
+            $table->addColumn('redelivered', 'boolean', ['null' => true]);
+            $table->addColumn('queue', 'string');
+            $table->addColumn('priority', 'integer', ['limit' => 5, 'null' => true]);
+            $table->addColumn('delayed_until', 'biginteger', ['null' => true]);
+            $table->addColumn('time_to_live', 'biginteger', ['null' => true]);
+            $table->addColumn('delivery_id', 'uuid', ['null' => true]);
+            $table->addColumn('redeliver_after', 'biginteger', ['null' => true]);
+
+            $table->addPrimaryKey(['id']);
+
+            $table->addIndex([
+                'priority',
+                'published_at',
+                'queue',
+                'delivery_id',
+                'delayed_until',
+                'id',
+            ], [
+                'name' => 'priority_idx',
+            ]);
+            $table->addIndex(['redeliver_after', 'delivery_id'], ['name' => 'redeliver_idx']);
+            $table->addIndex(['time_to_live', 'delivery_id'], ['name' => 'ttl_idx']);
+            $table->addIndex(['delivery_id'], ['name' => 'delivery_id_idx']);
+
+            $table->create();
+        } catch (Exception $e) {
             $msg = sprintf(
                 'Table creation for "%s" failed "%s"',
                 $this->getTableName(),
-                $e->getMessage()
+                $e->getMessage(),
             );
             trigger_error($msg, E_USER_WARNING);
         }

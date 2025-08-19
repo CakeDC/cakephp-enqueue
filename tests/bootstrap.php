@@ -15,8 +15,11 @@ declare(strict_types=1);
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
+use Cake\Cache\Cache;
 use Cake\Core\Configure;
+use Cake\Datasource\ConnectionManager;
 use Cake\Routing\Router;
+use TestApp\Application;
 
 $findRoot = function ($root) {
     do {
@@ -32,7 +35,7 @@ $root = $findRoot(__FILE__);
 unset($findRoot);
 chdir($root);
 
-require_once 'vendor/cakephp/cakephp/src/basics.php';
+require_once 'vendor/cakephp/cakephp/src/functions.php';
 require_once 'vendor/autoload.php';
 
 define('CORE_PATH', $root . DS . 'vendor' . DS . 'cakephp' . DS . 'cakephp' . DS);
@@ -45,6 +48,10 @@ if (!defined('CONFIG')) {
     define('CONFIG', ROOT . DS . 'config' . DS);
 }
 
+// Initialize the test application to load plugins
+$app = new Application(CONFIG);
+$app->bootstrap();
+
 Configure::write('debug', true);
 Configure::write('App', [
     'namespace' => 'TestApp',
@@ -54,10 +61,40 @@ Configure::write('App', [
     ],
 ]);
 
+$cache = [
+    'default' => [
+        'engine' => 'File',
+        'path' => CACHE,
+    ],
+    '_cake_translations_' => [
+        'className' => 'File',
+        'prefix' => '_test_cake_core_',
+        'path' => CACHE . 'persistent/',
+        'serialize' => true,
+        'duration' => '+10 seconds',
+    ],
+    '_cake_model_' => [
+        'className' => 'File',
+        'prefix' => '_test_cake_model_',
+        'path' => CACHE . 'models/',
+        'serialize' => 'File',
+        'duration' => '+10 seconds',
+    ],
+    '_cake_core_' => [
+        'className' => 'File',
+        'prefix' => '_test_cake_core_',
+        'path' => CACHE . 'core/',
+        'serialize' => 'File',
+        'duration' => '+10 seconds',
+    ],
+];
+
+Cache::setConfig($cache);
+
 Configure::write('Queue', [
     'default' => [
         // Don't actually send messages anywhere.
-        'url' => 'cakephp:test',
+        'url' => 'cakephp://test',
 
         // The queue that will be used for sending messages. default: default
         // This can be overriden when queuing or processing messages
@@ -73,7 +110,7 @@ if (!getenv('db_dsn')) {
     putenv('db_dsn=sqlite:///:memory:');
 }
 
-Cake\Datasource\ConnectionManager::setConfig('test', [
+ConnectionManager::setConfig('test', [
     'url' => getenv('db_dsn'),
     'timezone' => 'UTC',
 ]);

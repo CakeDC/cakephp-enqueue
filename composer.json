@@ -4,17 +4,18 @@
     "type": "cakephp-plugin",
     "license": "MIT",
     "require": {
-        "php": ">=7.2",
-        "cakephp/queue": "*",
-        "cakephp/cakephp": "^4.3"
+        "php": ">=8.2",
+        "cakephp/queue": "^2.0",
+        "cakephp/cakephp": "^5.1",
+		"cakephp/migrations": "^4.0"
     },
     "require-dev": {
-        "cakephp/cakephp-codesniffer": "^4.0",
+        "cakephp/cakephp-codesniffer": "^5.0",
         "enqueue/enqueue": "^0.10.15",
         "enqueue/fs": "^0.10",
         "enqueue/simple-client": "^0.10",
-        "psr/log": "^1.1",
-        "phpunit/phpunit": "^8.5 || ^9.3"
+        "psr/log": "^3.0",
+        "phpunit/phpunit": "^10.0"
     },
     "autoload": {
         "psr-4": {

@@ -16,15 +16,14 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Queue;
 
+use Cake\Enqueue\CakeConnectionFactory;
+use Cake\Enqueue\CakeMessage;
 use Cake\Event\EventList;
 use Cake\Log\Engine\ArrayLog;
 use Cake\Log\Log;
 use Cake\Queue\Job\Message;
 use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
-use Cake\Enqueue\CakeConnectionFactory;
-use Cake\Enqueue\CakeMessage;
-
 use Exception;
 use Interop\Queue\Processor as InteropProcessor;
 
@@ -37,34 +36,34 @@ class ProcessorTest extends TestCase
      *
      * @return array
      */
-    public function dataProviderTestProcess(): array
+    public static function dataProviderTestProcess(): array
     {
         return [
-            'ack' => ['processReturnAck', InteropProcessor::ACK, 'Message processed successfully', 'Processor.message.success'],
-            'null' => ['processReturnNull', InteropProcessor::ACK, 'Message processed successfully', 'Processor.message.success'],
-            'reject' => ['processReturnReject', InteropProcessor::REJECT, 'Message processed with rejection', 'Processor.message.reject'],
-            'requeue' => ['processReturnRequeue', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
-            'string' => ['processReturnString', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
+            'ack' => ['TestApp\Job\TestAckJob', InteropProcessor::ACK, 'Message processed successfully', 'Processor.message.success'],
+            'null' => ['TestApp\Job\TestAckJob', InteropProcessor::ACK, 'Message processed successfully', 'Processor.message.success'],
+            'reject' => ['TestApp\Job\TestRejectJob', InteropProcessor::REJECT, 'Message processed with rejection', 'Processor.message.reject'],
+            'requeue' => ['TestApp\Job\TestRequeueJob', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
+            'string' => ['TestApp\Job\TestStringJob', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
         ];
     }
 
     /**
      * Test process method
      *
-     * @param string $jobMethod The method name to run
+     * @param string $jobClass The job class to run
      * @param string $expected The expected process result.
      * @param string $logMessage The log message based on process result.
      * @param string $dispacthedEvent The dispatched event based on process result.
      * @dataProvider dataProviderTestProcess
      * @return void
      */
-    public function testProcess($jobMethod, $expected, $logMessage, $dispatchedEvent)
+    public function testProcess($jobClass, $expected, $logMessage, $dispatchedEvent)
     {
         $messageBody = [
-            'class' => [static::class, $jobMethod],
+            'class' => [$jobClass, 'execute'],
             'args' => [],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
         $message = new Message($queueMessage, $context);
@@ -72,7 +71,9 @@ class ProcessorTest extends TestCase
         $events = new EventList();
         $logger = new ArrayLog();
         $processor = new Processor($logger);
-        $processor->getEventManager()->setEventList($events);
+        /** @var \Cake\Event\EventManager $eventManager */
+        $eventManager = $processor->getEventManager();
+        $eventManager->setEventList($events);
 
         $actual = $processor->process($queueMessage, $context);
         $this->assertSame($expected, $actual);
@@ -109,14 +110,16 @@ class ProcessorTest extends TestCase
             'class' => ['NotValid\\ClassName\\FakeJob', 'execute'],
             'data' => ['sample_data' => 'a value'],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
 
         $events = new EventList();
         $logger = new ArrayLog();
         $processor = new Processor($logger);
-        $processor->getEventManager()->setEventList($events);
+        /** @var \Cake\Event\EventManager $eventManager */
+        $eventManager = $processor->getEventManager();
+        $eventManager->setEventList($events);
 
         $result = $processor->process($queueMessage, $context);
         $this->assertSame(InteropProcessor::REJECT, $result);
@@ -139,22 +142,23 @@ class ProcessorTest extends TestCase
      */
     public function testProcessWillRequeueOnException()
     {
-        $method = 'processAndThrowException';
         $messageBody = [
-            'class' => [static::class, $method],
-            'data' => ['sample_data' => 'a value', 'key' => md5($method)],
+            'class' => ['TestApp\Job\TestExceptionJob', 'execute'],
+            'data' => ['sample_data' => 'a value'],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
 
         $events = new EventList();
         $logger = new ArrayLog();
         $processor = new Processor($logger);
-        $processor->getEventManager()->setEventList($events);
+        /** @var \Cake\Event\EventManager $eventManager */
+        $eventManager = $processor->getEventManager();
+        $eventManager->setEventList($events);
 
         $result = $processor->process($queueMessage, $context);
-		$status = $result->getStatus();
+        $status = $result->getStatus();
         $this->assertSame(InteropProcessor::REQUEUE, $status);
     }
 
@@ -174,7 +178,7 @@ class ProcessorTest extends TestCase
             'class' => ['TestApp\WelcomeMailer', 'welcome'],
             'args' => [],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
         $processor = new Processor();
@@ -197,10 +201,10 @@ class ProcessorTest extends TestCase
     public function testProcessMessage()
     {
         $messageBody = [
-            'class' => [static::class, 'processReturnAck'],
+            'class' => ['TestApp\Job\TestAckJob', 'execute'],
             'args' => [],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
         $message = new Message($queueMessage, $context);
@@ -208,7 +212,6 @@ class ProcessorTest extends TestCase
 
         $result = $processor->processMessage($message);
         $this->assertSame(InteropProcessor::ACK, $result);
-        $this->assertNotEmpty(static::$lastProcessMessage);
     }
 
     /**

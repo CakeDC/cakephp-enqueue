@@ -16,14 +16,15 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Job;
 
+use BadMethodCallException;
+use Cake\Enqueue\CakeConnectionFactory;
+use Cake\Enqueue\CakeMessage;
 use Cake\Mailer\Exception\MissingMailerException;
 use Cake\Mailer\Mailer;
 use Cake\Queue\Job\MailerJob;
 use Cake\Queue\Job\Message;
 use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
-use Cake\Enqueue\CakeConnectionFactory;
-use Cake\Enqueue\CakeMessage;
 
 class MailerJobTest extends TestCase
 {
@@ -70,7 +71,7 @@ class MailerJobTest extends TestCase
             ->with(
                 $this->equalTo('welcome'),
                 $this->equalTo($this->args),
-                $this->equalTo($this->headers)
+                $this->equalTo($this->headers),
             )
             ->willReturn(['Message sent']);
 
@@ -78,7 +79,7 @@ class MailerJobTest extends TestCase
             ->method('getMailer')
             ->with(
                 $this->equalTo('SampleTest'),
-                $this->equalTo($this->mailerConfig)
+                $this->equalTo($this->mailerConfig),
             )->willReturn($this->mailer);
 
         $message = $this->createMessage();
@@ -100,7 +101,7 @@ class MailerJobTest extends TestCase
             ->method('getMailer')
             ->with(
                 $this->equalTo('SampleTest'),
-                $this->equalTo($this->mailerConfig)
+                $this->equalTo($this->mailerConfig),
             )->willThrowException(new MissingMailerException('Missing mailer for testExecuteMissingMailerException'));
 
         $message = $this->createMessage();
@@ -120,15 +121,15 @@ class MailerJobTest extends TestCase
             ->with(
                 $this->equalTo('welcome'),
                 $this->equalTo($this->args),
-                $this->equalTo($this->headers)
+                $this->equalTo($this->headers),
             )
-            ->willThrowException(new \BadMethodCallException('Welcome is not a valid method'));
+            ->willThrowException(new BadMethodCallException('Welcome is not a valid method'));
 
         $this->job->expects($this->once())
             ->method('getMailer')
             ->with(
                 $this->equalTo('SampleTest'),
-                $this->equalTo($this->mailerConfig)
+                $this->equalTo($this->mailerConfig),
             )->willReturn($this->mailer);
 
         $message = $this->createMessage();
@@ -153,7 +154,7 @@ class MailerJobTest extends TestCase
                 'headers' => $this->headers,
             ],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $originalMessage = new CakeMessage(json_encode($messageBody));
         $message = new Message($originalMessage, $context);

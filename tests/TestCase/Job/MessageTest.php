@@ -16,11 +16,11 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Job;
 
+use Cake\Enqueue\CakeConnectionFactory;
+use Cake\Enqueue\CakeMessage;
 use Cake\Queue\Job\Message;
 use Cake\TestSuite\TestCase;
 use Closure;
-use Cake\Enqueue\CakeConnectionFactory;
-use Cake\Enqueue\CakeMessage;
 use Error;
 use RuntimeException;
 
@@ -42,7 +42,7 @@ class MessageTest extends TestCase
             'data' => $data,
         ];
         $messageBody = json_encode($parsedBody);
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
 
         $context = $connectionFactory->createContext();
         $originalMessage = new CakeMessage($messageBody);
@@ -81,7 +81,7 @@ class MessageTest extends TestCase
             'args' => [$args],
         ];
 
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $originalMessage = new CakeMessage(json_encode($parsedBody));
         $message = new Message($originalMessage, $context);
@@ -104,7 +104,7 @@ class MessageTest extends TestCase
             'args' => [],
         ];
         $messageBody = json_encode($parsedBody);
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
 
         $context = $connectionFactory->createContext();
         $originalMessage = new CakeMessage($messageBody);
@@ -126,7 +126,7 @@ class MessageTest extends TestCase
             'args' => [],
         ];
         $messageBody = json_encode($parsedBody);
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
 
         $context = $connectionFactory->createContext();
         $originalMessage = new CakeMessage($messageBody);

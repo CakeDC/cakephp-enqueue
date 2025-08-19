@@ -31,24 +31,24 @@ class CakeConsumer implements Consumer
     /**
      * @var \Cake\Enqueue\CakeContext
      */
-    private $context;
+    private CakeContext $context;
 
     /**
      * @var \Cake\Database\Connection
      */
-    private $connection;
+    private Connection $connection;
 
     /**
      * @var \Cake\Enqueue\CakeDestination
      */
-    private $queue;
+    private CakeDestination $queue;
 
     /**
      * Default 20 minutes in milliseconds.
      *
      * @var int
      */
-    private $redeliveryDelay;
+    private int $redeliveryDelay;
 
     /**
      * @param \Cake\Enqueue\CakeContext $context Context instance.

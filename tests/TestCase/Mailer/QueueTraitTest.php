@@ -16,10 +16,13 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Mailer;
 
+use Cake\Datasource\ConnectionManager;
+use Cake\Enqueue\Plugin;
 use Cake\Mailer\Exception\MissingActionException;
 use Cake\ORM\TableRegistry;
 use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
+use TestApp\Application;
 use TestApp\WelcomeMailer;
 
 class QueueTraitTest extends TestCase
@@ -45,19 +48,19 @@ class QueueTraitTest extends TestCase
      */
     public function testQueueTraitCallsPush()
     {
-        $application = new \TestApp\Application(CONFIG);
-        $plugin = new \Cake\Enqueue\Plugin();
+        $application = new Application(CONFIG);
+        $plugin = new Plugin();
         $plugin->bootstrap($application);
 
         $queue = new WelcomeMailer();
         QueueManager::setConfig('default', [
             'queue' => 'default',
-            'url' => 'cakephp:connection:test',
+            'url' => 'cakephp://test',
         ]);
 
         $this->assertEmpty($queue->push('welcome'));
 
-        $testConection = \Cake\Datasource\ConnectionManager::get('test');
+        $testConection = ConnectionManager::get('test');
         $Enqueue = TableRegistry::getTableLocator()->get('Cake/Enqueue.Enqueue', [
             'connection' => $testConection,
         ]);

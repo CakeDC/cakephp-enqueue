@@ -24,7 +24,7 @@ class CakeDestination implements Topic, Queue
     /**
      * @var string
      */
-    private $destinationName;
+    private string $destinationName;
 
     /**
      * @param string $name Destination name.
