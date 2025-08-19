@@ -36,7 +36,7 @@ class ProcessorTest extends TestCase
      *
      * @return array
      */
-    public function dataProviderTestProcess(): array
+    public static function dataProviderTestProcess(): array
     {
         return [
             'ack' => ['TestApp\Job\TestAckJob', InteropProcessor::ACK, 'Message processed successfully', 'Processor.message.success'],
@@ -63,7 +63,7 @@ class ProcessorTest extends TestCase
             'class' => [$jobClass, 'execute'],
             'args' => [],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
         $message = new Message($queueMessage, $context);
@@ -110,7 +110,7 @@ class ProcessorTest extends TestCase
             'class' => ['NotValid\\ClassName\\FakeJob', 'execute'],
             'data' => ['sample_data' => 'a value'],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
 
@@ -146,7 +146,7 @@ class ProcessorTest extends TestCase
             'class' => ['TestApp\Job\TestExceptionJob', 'execute'],
             'data' => ['sample_data' => 'a value'],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
 
@@ -178,7 +178,7 @@ class ProcessorTest extends TestCase
             'class' => ['TestApp\WelcomeMailer', 'welcome'],
             'args' => [],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
         $processor = new Processor();
@@ -204,7 +204,7 @@ class ProcessorTest extends TestCase
             'class' => ['TestApp\Job\TestAckJob', 'execute'],
             'args' => [],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $queueMessage = new CakeMessage(json_encode($messageBody));
         $message = new Message($queueMessage, $context);

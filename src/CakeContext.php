@@ -270,7 +270,9 @@ class CakeContext implements Context
      */
     public function getTable(): OrmTable
     {
-        $table = TableRegistry::getTableLocator()->get('Cake/Enqueue.Enqueue');
+        $table = TableRegistry::getTableLocator()->get('Cake/Enqueue.Enqueue', [
+            'connection' => $this->getCakeConnection(),
+        ]);
         $table->setTable($this->getTableName());
 
         return $table;
@@ -331,17 +333,17 @@ class CakeContext implements Context
             $table = new Table($this->getTableName(), ['id' => false], $adapter);
 
             $table->addColumn('id', 'uuid');
-            $table->addColumn('published_at', 'integer', ['limit' => 11]);
+            $table->addColumn('published_at', 'biginteger');
             $table->addColumn('body', 'text', ['null' => true]);
             $table->addColumn('headers', 'text', ['null' => true]);
             $table->addColumn('properties', 'text', ['null' => true]);
             $table->addColumn('redelivered', 'boolean', ['null' => true]);
-            $table->addColumn('queue', 'text');
+            $table->addColumn('queue', 'string');
             $table->addColumn('priority', 'integer', ['limit' => 5, 'null' => true]);
-            $table->addColumn('delayed_until', 'integer', ['null' => true]);
-            $table->addColumn('time_to_live', 'integer', ['null' => true]);
+            $table->addColumn('delayed_until', 'biginteger', ['null' => true]);
+            $table->addColumn('time_to_live', 'biginteger', ['null' => true]);
             $table->addColumn('delivery_id', 'uuid', ['null' => true]);
-            $table->addColumn('redeliver_after', 'integer', ['null' => true]);
+            $table->addColumn('redeliver_after', 'biginteger', ['null' => true]);
 
             $table->addPrimaryKey(['id']);
 

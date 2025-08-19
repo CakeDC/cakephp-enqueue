@@ -45,12 +45,12 @@ class QueueManagerTest extends TestCase
     public function testSetConfig()
     {
         $result = QueueManager::setConfig('test', [
-            'url' => 'cakephp:connection:test',
+            'url' => 'cakephp://test',
         ]);
         $this->assertNull($result);
 
         $config = QueueManager::getConfig('test');
-        $this->assertSame('cakephp:connection:test', $config['url']);
+        $this->assertSame('cakephp://test', $config['url']);
     }
 
     public function testSetConfigInvalidValue()
@@ -69,7 +69,7 @@ class QueueManagerTest extends TestCase
     public function testSetConfigOverwrite()
     {
         QueueManager::setConfig('test', [
-            'url' => 'cakephp:connection:test',
+            'url' => 'cakephp://test',
         ]);
         $this->expectException(BadMethodCallException::class);
         $this->expectExceptionMessage('Cannot reconfigure');
@@ -109,7 +109,7 @@ class QueueManagerTest extends TestCase
     {
         QueueManager::setConfig('test', [
             'queue' => 'default',
-            'url' => 'cakephp:connection:test',
+            'url' => 'cakephp://test',
         ]);
         $engine = QueueManager::engine('test');
         $this->assertInstanceOf(SimpleClient::class, $engine);

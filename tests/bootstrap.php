@@ -15,6 +15,7 @@ declare(strict_types=1);
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
+use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
 use Cake\Routing\Router;
@@ -60,10 +61,40 @@ Configure::write('App', [
     ],
 ]);
 
+$cache = [
+    'default' => [
+        'engine' => 'File',
+        'path' => CACHE,
+    ],
+    '_cake_translations_' => [
+        'className' => 'File',
+        'prefix' => '_test_cake_core_',
+        'path' => CACHE . 'persistent/',
+        'serialize' => true,
+        'duration' => '+10 seconds',
+    ],
+    '_cake_model_' => [
+        'className' => 'File',
+        'prefix' => '_test_cake_model_',
+        'path' => CACHE . 'models/',
+        'serialize' => 'File',
+        'duration' => '+10 seconds',
+    ],
+    '_cake_core_' => [
+        'className' => 'File',
+        'prefix' => '_test_cake_core_',
+        'path' => CACHE . 'core/',
+        'serialize' => 'File',
+        'duration' => '+10 seconds',
+    ],
+];
+
+Cache::setConfig($cache);
+
 Configure::write('Queue', [
     'default' => [
         // Don't actually send messages anywhere.
-        'url' => 'cakephp:test',
+        'url' => 'cakephp://test',
 
         // The queue that will be used for sending messages. default: default
         // This can be overriden when queuing or processing messages

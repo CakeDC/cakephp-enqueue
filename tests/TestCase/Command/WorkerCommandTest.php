@@ -59,7 +59,7 @@ class WorkerCommandTest extends TestCase
         Configure::write('Queue', [
             'default' => [
                 'queue' => 'default',
-                'url' => 'cakephp:connection:test',
+                'url' => 'cakephp://test',
             ],
         ]);
         $this->exec('queue worker --max-runtime=0');
@@ -76,7 +76,7 @@ class WorkerCommandTest extends TestCase
         Configure::write('Queue', [
             'default' => [
                 'queue' => 'default',
-                'url' => 'cakephp:connection:test',
+                'url' => 'cakephp://test',
                 'listener' => WelcomeMailerListener::class,
             ],
         ]);
@@ -94,7 +94,7 @@ class WorkerCommandTest extends TestCase
         Configure::write('Queue', [
             'default' => [
                 'queue' => 'default',
-                'url' => 'cakephp:connection:test',
+                'url' => 'cakephp://test',
                 'listener' => 'InvalidListener',
             ],
         ]);
@@ -113,7 +113,7 @@ class WorkerCommandTest extends TestCase
         Configure::write('Queue', [
             'default' => [
                 'queue' => 'default',
-                'url' => 'cakephp:connection:test',
+                'url' => 'cakephp://test',
                 'listener' => 'InvalidListener',
             ],
         ]);
@@ -149,7 +149,7 @@ class WorkerCommandTest extends TestCase
      *
      * @return array
      */
-    public function dataProviderCallableTypes(): array
+    public static function dataProviderCallableTypes(): array
     {
         return [
             'Job Class' => [LogToDebugJob::class],

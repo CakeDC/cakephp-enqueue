@@ -55,7 +55,7 @@ class QueueTraitTest extends TestCase
         $queue = new WelcomeMailer();
         QueueManager::setConfig('default', [
             'queue' => 'default',
-            'url' => 'cakephp:connection:test',
+            'url' => 'cakephp://test',
         ]);
 
         $this->assertEmpty($queue->push('welcome'));

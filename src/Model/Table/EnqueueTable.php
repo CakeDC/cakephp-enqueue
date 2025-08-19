@@ -122,4 +122,34 @@ class EnqueueTable extends Table
     {
         return $rules;
     }
+
+    /**
+     * Get the number of jobs in a specific queue.
+     *
+     * @param string $queueName The queue name
+     * @return int Number of jobs in the queue
+     */
+    public function getSize(string $queueName): int
+    {
+        return $this->find()
+            ->where(['queue' => $queueName])
+            ->count();
+    }
+
+    /**
+     * Get statistics for all queues.
+     *
+     * @return array<string, array<string, mixed>> Queue statistics
+     */
+    public function getAllSizes(): array
+    {
+        return $this->find()
+            ->select([
+                'queue',
+                'job_count' => $this->find()->func()->count('*'),
+            ])
+            ->groupBy(['queue'])
+            ->all()
+            ->toArray();
+    }
 }

@@ -16,7 +16,6 @@ declare(strict_types=1);
  */
 namespace Cake\Enqueue;
 
-use Exception as BaseException;
 use Interop\Queue\Destination;
 use Interop\Queue\Exception\Exception;
 use Interop\Queue\Exception\InvalidDestinationException;
@@ -122,15 +121,18 @@ class CakeProducer implements Producer
             $record['time_to_live'] = time() + (int)($timeToLive / 1000);
         }
 
-        try {
-            $rowsAffected = $this->context->getCakeConnection()->insert($this->context->getTableName(), $record);
+        // try {
+            $table = $this->context->getTable();
+            $entity = $table->newEntity($record);
+            $result = $table->save($entity);
+            // $rowsAffected = $this->context->getCakeConnection()->insert($this->context->getTableName(), $record);
 
-            if ($rowsAffected->rowCount() !== 1) {
-                throw new Exception('The message was not enqueued. Cake did not confirm that the record is inserted.');
-            }
-        } catch (BaseException $e) {
-            throw new Exception('The transport fails to send the message due to some internal error.', 0, $e);
+        if (!$result) {
+            throw new Exception('The message was not enqueued. Cake did not confirm that the record is inserted.');
         }
+        // } catch (BaseException $e) {
+            // throw new Exception('The transport fails to send the message due to some internal error.', 0, $e);
+        // }
     }
 
     /**

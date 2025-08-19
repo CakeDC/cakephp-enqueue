@@ -154,7 +154,7 @@ class MailerJobTest extends TestCase
                 'headers' => $this->headers,
             ],
         ];
-        $connectionFactory = new CakeConnectionFactory('cakephp:connection:test');
+        $connectionFactory = new CakeConnectionFactory('cakephp://test');
         $context = $connectionFactory->createContext();
         $originalMessage = new CakeMessage(json_encode($messageBody));
         $message = new Message($originalMessage, $context);
