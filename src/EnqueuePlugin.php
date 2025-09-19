@@ -28,7 +28,7 @@ use Enqueue\Resources;
 /**
  * Plugin for CakephpEnqueue
  */
-class Plugin extends BasePlugin
+class EnqueuePlugin extends BasePlugin
 {
     /**
      * Load all the plugin configuration and bootstrap logic.

@@ -1,7 +1,6 @@
 CakePHP Enqueue Plugin
 =======================
 
-[![Build Status](https://img.shields.io/github/workflow/status/cakedc/cakephp-enqueue/CI/master?style=flat-square)](https://github.com/cakedc/cakephp-enqueue/actions?query=workflow%3ACI+branch%3Amaster)
 [![Downloads](https://poser.pugx.org/cakedc/cakephp-enqueue/d/total.png)](https://packagist.org/packages/cakedc/cakephp-enqueue)
 [![Latest Version](https://poser.pugx.org/cakedc/cakephp-enqueue/v/stable.png)](https://packagist.org/packages/cakedc/cakephp-enqueue)
 [![License](https://poser.pugx.org/cakedc/cakephp-enqueue/license.svg)](https://packagist.org/packages/cakedc/cakephp-enqueue)

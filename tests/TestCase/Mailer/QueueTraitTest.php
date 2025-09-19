@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace Cake\Queue\Test\TestCase\Mailer;
 
 use Cake\Datasource\ConnectionManager;
-use Cake\Enqueue\Plugin;
+use Cake\Enqueue\EnqueuePlugin;
 use Cake\Mailer\Exception\MissingActionException;
 use Cake\ORM\TableRegistry;
 use Cake\Queue\QueueManager;
@@ -49,7 +49,7 @@ class QueueTraitTest extends TestCase
     public function testQueueTraitCallsPush()
     {
         $application = new Application(CONFIG);
-        $plugin = new Plugin();
+        $plugin = new EnqueuePlugin();
         $plugin->bootstrap($application);
 
         $queue = new WelcomeMailer();
