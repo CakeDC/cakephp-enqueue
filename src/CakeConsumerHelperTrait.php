@@ -132,7 +132,7 @@ trait CakeConsumerHelperTrait
             $this->getContext()->getTable()->updateAll(
                 [
                     'delivery_id' => null,
-                    'redeliver' => true,
+                    'redelivered' => true,
                 ],
                 [
                     'redeliver_after <' => time(),
