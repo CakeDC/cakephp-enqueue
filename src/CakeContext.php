@@ -169,11 +169,11 @@ class CakeContext implements Context
         $consumer = new CakeSubscriptionConsumer($this);
 
         if (isset($this->config['redelivery_delay'])) {
-            $consumer->setRedeliveryDelay($this->config['redelivery_delay']);
+            $consumer->setRedeliveryDelay((int)$this->config['redelivery_delay']);
         }
 
         if (isset($this->config['subscription_polling_interval'])) {
-            $consumer->setPollingInterval($this->config['subscription_polling_interval']);
+            $consumer->setPollingInterval((int)$this->config['subscription_polling_interval']);
         }
 
         return $consumer;
