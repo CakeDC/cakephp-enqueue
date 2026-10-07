@@ -102,4 +102,25 @@ class CakeConnectionFactoryTest extends TestCase
         $this->assertEquals(3000, $actualConfig['polling_interval']);
         $this->assertFalse($actualConfig['lazy']);
     }
+
+    /**
+     * Options given in the DSN must not break consumer creation.
+     *
+     * @return void
+     */
+    public function testDsnConsumerOptionsAreCast(): void
+    {
+        $factory = new CakeConnectionFactory(
+            'cakephp://test?redelivery_delay=1500&subscription_polling_interval=300',
+        );
+        $context = $factory->createContext();
+
+        $subscriptionConsumer = $context->createSubscriptionConsumer();
+        $this->assertSame(1500, $subscriptionConsumer->getRedeliveryDelay());
+
+        $context->createDataBaseTable();
+        $consumer = $context->createConsumer($context->createQueue('test'));
+        $this->assertSame(1500, $consumer->getRedeliveryDelay());
+        $this->assertNull($consumer->receiveNoWait());
+    }
 }

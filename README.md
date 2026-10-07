@@ -11,20 +11,19 @@ Versions and branches
 | CakePHP | CakePHP Enqueue Plugin | Tag   | Notes |
 | :-------------: | :------------------------: | :--:  | :---- |
 | ^5.1            | [2.x](https://github.com/CakeDC/cakephp-enqueue/tree/2.x)                      | 2.0.1 | stable |
-| ^4.5            | [1.x](https://github.com/CakeDC/cakephp-enqueue/tree/1.x)                      | 1.0.0 | stable |
+| ^4.3            | [1.x](https://github.com/CakeDC/cakephp-enqueue/tree/1.x)                      | 1.0.0 | stable |
 
 The **CakePHP Enqueue** plugin provides message queue integration for CakePHP applications using the Enqueue library and database as a message broker.
 
 Requirements
 ------------
 
-* CakePHP 4.5+ or 5.1+
-* PHP 8.0+
+* CakePHP 5.1+ and PHP 8.2+ (2.x), or CakePHP 4.3+ and PHP 7.2+ (1.x)
 
 Documentation
 -------------
 
-For documentation, see the [Docs](docs/index.md) directory of this repository.
+For documentation, see the [Docs](Docs/Home.md) directory of this repository.
 
 Support
 -------

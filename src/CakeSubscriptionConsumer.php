@@ -127,7 +127,7 @@ class CakeSubscriptionConsumer implements SubscriptionConsumer
 
         $timeout /= 1000;
         $now = time();
-        $redeliveryDelay = $this->getRedeliveryDelay() / 1000; // milliseconds to seconds
+        $redeliveryDelay = (int)($this->getRedeliveryDelay() / 1000); // milliseconds to seconds
 
         $currentQueueNames = [];
         while (true) {
