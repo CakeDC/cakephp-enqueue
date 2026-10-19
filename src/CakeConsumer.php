@@ -99,7 +99,7 @@ class CakeConsumer implements Consumer
      */
     public function receiveNoWait(): ?Message
     {
-        $redeliveryDelay = $this->getRedeliveryDelay() / 1000;
+        $redeliveryDelay = (int)($this->getRedeliveryDelay() / 1000);
 
         $this->removeExpiredMessages();
         $this->redeliverMessages();
